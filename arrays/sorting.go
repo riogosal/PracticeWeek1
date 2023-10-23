@@ -14,8 +14,14 @@ func SortedAscending(arr []int) bool {
 	return sort
 }
 
+func swap(arr []int, index1, index2 int) []int {
+	temp := arr[index1]
+	arr[index1] = arr[index2]
+	arr[index2] = temp
+	return arr
+}
+
 func Selection(main [6]int) [6]int {
-	temp := 0
 	for x := 0; x < (len(main) - 1); x++ {
 		min := 20
 		index := x
@@ -27,9 +33,7 @@ func Selection(main [6]int) [6]int {
 			}
 		}
 		if index != x {
-			temp = main[x]
-			main[x] = min
-			main[index] = temp
+			main = [6]int(swap(main[:], x, index))
 		}
 	}
 	return main
