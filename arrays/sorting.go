@@ -21,7 +21,7 @@ func swap(arr []int, index1, index2 int) []int {
 	return arr
 }
 
-func Selection(main [6]int) [6]int {
+func Selection(main []int) []int {
 	for x := 0; x < (len(main) - 1); x++ {
 		min := 20
 		index := x
@@ -33,7 +33,7 @@ func Selection(main [6]int) [6]int {
 			}
 		}
 		if index != x {
-			main = [6]int(swap(main[:], x, index))
+			main = swap(main[:], x, index)
 		}
 	}
 	return main
