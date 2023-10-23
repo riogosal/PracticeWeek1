@@ -32,9 +32,9 @@ func main() {
 	fmt.Println("千万不要搜索! ", somethinSKetchy)
 
 	fmt.Printf("\nArrays vs Maps 部分/Playground\n\n")
-	arr := [6]int{8, 5, 6, 3, 1, 2} //array size needs to be studied more: declaring a function that can receive an array without prior knowledge of the array size
+	arr := [6]int{8, 5, 6, 3, 1, 2} //fixed array size problem
 	fmt.Println("Unsorted array : ", arr)
-	fmt.Println("Sorted array : ", sorting.Selection(arr))
+	fmt.Println("Sorted array : ", sorting.Selection(arr[:]))
 
 	var mp map[string]int = map[string]int{
 		"完了":   3,
