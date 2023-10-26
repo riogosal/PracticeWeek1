@@ -1,52 +1,128 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
+	"os"
 	"time"
 )
 
 var Counter int = 1000
+var Counter2 int = 1000
 
 type Catalogue struct {
-	ID          int
-	name        string
-	quantity    int
-	recentStock time.Time
+	ID       int
+	name     string
+	quantity int
+	timeStamp
+}
+
+type Frozen struct {
+	TypeID   int
+	BatchID  int
+	name     string
+	quantity int
+	timeStamp
+}
+
+type timeStamp struct {
+	firstStock    time.Time
+	recentStock   time.Time
+	nearestExpiry time.Time
+}
+
+type Item interface {
+	Add()
+	Take()
+	Print()
 }
 
 func CreateCatalogue(name string, num int) Catalogue {
 	Counter++
 	return Catalogue{
-		ID:          Counter,
-		name:        name,
-		quantity:    num,
-		recentStock: time.Now(),
+		ID:       Counter,
+		name:     name,
+		quantity: num,
+		timeStamp: timeStamp{
+			firstStock:    time.Now(),
+			recentStock:   time.Now(),
+			nearestExpiry: time.Now().Add(time.Hour * 24 * 365),
+		},
 	}
 }
 
-func CataloguePrint(item Catalogue) {
+func CreateFrozen(name string, num int) Frozen {
+	Counter++
+	Counter2++
+	return Frozen{
+		TypeID:   Counter,
+		BatchID:  Counter2,
+		name:     name,
+		quantity: num,
+		timeStamp: timeStamp{
+			firstStock:    time.Now(),
+			recentStock:   time.Now(),
+			nearestExpiry: time.Now().Add(time.Hour * 24 * 730),
+		},
+	}
+}
+
+func (item Catalogue) Print() {
 	fmt.Println("ID : ", item.ID)
 	fmt.Println("Name :", item.name)
 	fmt.Println("Quantity: ", item.quantity)
-	fmt.Println("Last restock: ", item.recentStock)
-	println()
+	fmt.Printf("Last restock: %d-%d-%d %d:%d:%d\n",
+		item.recentStock.Year(),
+		item.recentStock.Month(),
+		item.recentStock.Day(),
+		item.recentStock.Hour(),
+		item.recentStock.Hour(),
+		item.recentStock.Second())
+	println("====================================")
+}
+
+func (item Frozen) Print() {
+	fmt.Println("Type ID : ", item.TypeID)
+	fmt.Println("Batch ID : ", item.BatchID)
+	fmt.Println("Name :", item.name)
+	fmt.Println("Quantity: ", item.quantity)
+	fmt.Printf("Last restock: %d-%d-%d %d:%d:%d\n",
+		item.recentStock.Year(),
+		item.recentStock.Month(),
+		item.recentStock.Day(),
+		item.recentStock.Hour(),
+		item.recentStock.Hour(),
+		item.recentStock.Second())
+	println("====================================")
 }
 
 func ViewStorage(storage map[int]Catalogue) {
 	for _, value := range storage {
-		CataloguePrint(value)
+		value.Print()
 	}
 }
 
 func HomePage() int {
-	fmt.Print("Input action (1-view storage, 2-add item, ,3-restock item, 4-take item, 5-exit): ")
+	fmt.Print("Input action (1-view storage, 2-add item (Catalogue), 3-add item (Frozen), 4-restock item, 5-take item, 6-exit): ")
 	var temp int
 	fmt.Scan(&temp)
 	return temp
 }
 
-func (item *Catalogue) addQuantity(number int) {
+func (item *Catalogue) Add(number int) {
 	item.quantity += number
+	item.recentStock = time.Now()
+}
+func (item *Catalogue) Take(number int) {
+	item.quantity -= number
+	item.recentStock = time.Now()
+}
+func (item *Frozen) Add(number int) {
+	item.quantity += number
+	item.recentStock = time.Now()
+}
+func (item *Frozen) Take(number int) {
+	item.quantity -= number
 	item.recentStock = time.Now()
 }
 
@@ -58,7 +134,7 @@ func main() {
 	fish := CreateCatalogue("Salmon", 10)
 	vegs := CreateCatalogue("Selada", 30)
 
-	var storage map[int]Catalogue = map[int]Catalogue{
+	var storage = map[int]Catalogue{
 		bread1.ID: bread1,
 		bread2.ID: bread2,
 		fish.ID:   fish,
@@ -83,7 +159,7 @@ func main() {
 			fmt.Print("Number of items: ")
 			fmt.Scan(&temp2)
 			val := storage[temp1]
-			val.addQuantity(temp2)
+			val.Add(temp2)
 			storage[temp1] = val
 		} else if condition == 4 {
 			fmt.Print("Input item ID: ")
@@ -91,10 +167,17 @@ func main() {
 			fmt.Print("Number of items: ")
 			fmt.Scan(&temp2)
 			val := storage[temp1]
-			val.addQuantity(-temp2)
+			val.Take(temp2)
 			storage[temp1] = val
 		}
 		condition = HomePage()
+	}
+	jsonEncoded, err := json.Marshal(storage)
+	if err != nil {
+		panic(err)
+	}
+	if err := os.WriteFile("database.json", jsonEncoded, 0644); err != nil {
+		panic(err)
 	}
 }
 
