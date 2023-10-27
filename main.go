@@ -1,102 +1,20 @@
 package main
 
 import (
+	"bufio"
 	"encoding/json"
 	"fmt"
 	"os"
-	"time"
+	"project1/models"
 )
 
-var Counter int = 1000
-var Counter2 int = 1000
-
-type Catalogue struct {
-	ID       int
-	name     string
-	quantity int
-	timeStamp
-}
-
-type Frozen struct {
-	TypeID   int
-	BatchID  int
-	name     string
-	quantity int
-	timeStamp
-}
-
-type timeStamp struct {
-	firstStock    time.Time
-	recentStock   time.Time
-	nearestExpiry time.Time
-}
-
 type Item interface {
-	Add()
-	Take()
+	Add(quantityAdded int)
+	Take(quantityTaken int)
 	Print()
 }
 
-func CreateCatalogue(name string, num int) Catalogue {
-	Counter++
-	return Catalogue{
-		ID:       Counter,
-		name:     name,
-		quantity: num,
-		timeStamp: timeStamp{
-			firstStock:    time.Now(),
-			recentStock:   time.Now(),
-			nearestExpiry: time.Now().Add(time.Hour * 24 * 365),
-		},
-	}
-}
-
-func CreateFrozen(name string, num int) Frozen {
-	Counter++
-	Counter2++
-	return Frozen{
-		TypeID:   Counter,
-		BatchID:  Counter2,
-		name:     name,
-		quantity: num,
-		timeStamp: timeStamp{
-			firstStock:    time.Now(),
-			recentStock:   time.Now(),
-			nearestExpiry: time.Now().Add(time.Hour * 24 * 730),
-		},
-	}
-}
-
-func (item Catalogue) Print() {
-	fmt.Println("ID : ", item.ID)
-	fmt.Println("Name :", item.name)
-	fmt.Println("Quantity: ", item.quantity)
-	fmt.Printf("Last restock: %d-%d-%d %d:%d:%d\n",
-		item.recentStock.Year(),
-		item.recentStock.Month(),
-		item.recentStock.Day(),
-		item.recentStock.Hour(),
-		item.recentStock.Hour(),
-		item.recentStock.Second())
-	println("====================================")
-}
-
-func (item Frozen) Print() {
-	fmt.Println("Type ID : ", item.TypeID)
-	fmt.Println("Batch ID : ", item.BatchID)
-	fmt.Println("Name :", item.name)
-	fmt.Println("Quantity: ", item.quantity)
-	fmt.Printf("Last restock: %d-%d-%d %d:%d:%d\n",
-		item.recentStock.Year(),
-		item.recentStock.Month(),
-		item.recentStock.Day(),
-		item.recentStock.Hour(),
-		item.recentStock.Hour(),
-		item.recentStock.Second())
-	println("====================================")
-}
-
-func ViewStorage(storage map[int]Catalogue) {
+func ViewStorage(storage map[int]Item) {
 	for _, value := range storage {
 		value.Print()
 	}
@@ -109,37 +27,24 @@ func HomePage() int {
 	return temp
 }
 
-func (item *Catalogue) Add(number int) {
-	item.quantity += number
-	item.recentStock = time.Now()
-}
-func (item *Catalogue) Take(number int) {
-	item.quantity -= number
-	item.recentStock = time.Now()
-}
-func (item *Frozen) Add(number int) {
-	item.quantity += number
-	item.recentStock = time.Now()
-}
-func (item *Frozen) Take(number int) {
-	item.quantity -= number
-	item.recentStock = time.Now()
-}
-
 func main() {
 	fmt.Printf("Struct playground\n\n")
+	scanner := bufio.NewScanner(os.Stdin)
 
-	bread1 := CreateCatalogue("Croissant", 10)
-	bread2 := CreateCatalogue("Rotiboy", 8)
-	fish := CreateCatalogue("Salmon", 10)
-	vegs := CreateCatalogue("Selada", 30)
+	// bread1 := models.CreateCatalogue("Croissant", 10)
+	bread2 := models.CreateCatalogue("Rotiboy", 8)
+	// fish := models.CreateCatalogue("Salmon", 10)
+	// vegs := models.CreateCatalogue("Selada", 30)
+	frozenSalmon := models.CreateFrozen("Frozen Salmon", 20)
 
-	var storage = map[int]Catalogue{
-		bread1.ID: bread1,
-		bread2.ID: bread2,
-		fish.ID:   fish,
-		vegs.ID:   vegs,
+	var storage = map[int]Item{
+		// bread1.ID: bread1,
+		bread2.ID: &bread2,
+		// fish.ID:   fish,
+		// vegs.ID:   vegs,
+		frozenSalmon.TypeID: &frozenSalmon,
 	}
+
 	condition := HomePage()
 	var temp1, temp2 int
 	for condition != 5 {
@@ -147,12 +52,15 @@ func main() {
 			ViewStorage(storage)
 		} else if condition == 2 {
 			fmt.Print("Item name: ")
-			var str string
-			fmt.Scan(&str)
+			scanner.Scan()
+			if err := scanner.Err(); err != nil {
+				panic(err)
+			}
+			str := scanner.Text()
 			fmt.Print("Item quantity: ")
 			fmt.Scan(&temp1)
-			new := CreateCatalogue(str, temp2)
-			storage[new.ID] = new
+			new := models.CreateCatalogue(str, temp2)
+			storage[new.ID] = &new
 		} else if condition == 3 {
 			fmt.Print("Input item ID: ")
 			fmt.Scan(&temp1)
